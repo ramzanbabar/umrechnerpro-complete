@@ -14,7 +14,7 @@
  * - Token-based styling
  */
 
-import React, { useState, forwardRef, InputHTMLAttributes, ButtonHTMLAttributes } from 'react';
+import React, { useState, forwardRef, ButtonHTMLAttributes } from 'react';
 import { cn } from './utils'; // Utility for classname merging
 
 // ============================================
@@ -104,7 +104,13 @@ Button.displayName = 'Button';
 // INPUT COMPONENT
 // ============================================
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+// ============================================
+// INPUT COMPONENT (FIXED FOR VERCEL BUILD)
+// ============================================
+
+type NativeInputProps = React.ComponentPropsWithoutRef<'input'>;
+
+interface InputProps extends Omit<NativeInputProps, 'size'> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -129,7 +135,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId =
+      id || `input-${Math.random().toString(36).slice(2, 9)}`;
+
     const errorId = error ? `${inputId}-error` : undefined;
     const helperId = helperText ? `${inputId}-helper` : undefined;
 
@@ -142,18 +150,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="form-group">
         {label && (
-          <label htmlFor={inputId} className={cn('label', required && 'label-required')}>
+          <label
+            htmlFor={inputId}
+            className={cn('label', required && 'label-required')}
+          >
             {label}
           </label>
         )}
-        
+
         <div className="relative">
           {leftIcon && (
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
               {leftIcon}
             </div>
           )}
-          
+
           <input
             ref={ref}
             id={inputId}
@@ -166,23 +177,29 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               className
             )}
             aria-invalid={error ? 'true' : 'false'}
-            aria-describedby={cn(errorId, helperId)}
+            aria-describedby={[errorId, helperId]
+              .filter(Boolean)
+              .join(' ') || undefined}
             {...props}
           />
-          
+
           {rightIcon && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
               {rightIcon}
             </div>
           )}
         </div>
-        
+
         {error && (
-          <span id={errorId} className="helper-text helper-text-error" role="alert">
+          <span
+            id={errorId}
+            className="helper-text helper-text-error"
+            role="alert"
+          >
             {error}
           </span>
         )}
-        
+
         {!error && helperText && (
           <span id={helperId} className="helper-text">
             {helperText}
